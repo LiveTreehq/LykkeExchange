@@ -1,4 +1,6 @@
-﻿namespace ExchangeMarket.LykkeExchange
+﻿using System;
+
+namespace ExchangeMarket.LykkeExchange
 { 
     /// <summary>
     /// Type of trade
@@ -19,7 +21,7 @@
         public decimal Amount;
         public decimal Price;
         public LykkeTradeType TradeType; // SELL or BUY
-        public long Timestamp;
+        public DateTime DateTime;
         public string GasCurrency;
 
         /// <summary>
@@ -30,16 +32,16 @@
         /// <param name="Amount">Trade Volume</param>
         /// <param name="Price">Trading price</param>
         /// <param name="TradeType">Type of the trade. <see cref="LykkeTradeType"/></param>
-        /// <param name="Timestamp">Time Stamp of the trade</param>
+        /// <param name="DateTime">Time Stamp of the trade</param>
         /// <param name="GasCurrency"></param>
-        public LykkeHistory(string FromCurrency, string ToCurrency, decimal Amount, decimal Price, LykkeTradeType TradeType, long Timestamp, string GasCurrency)
+        public LykkeHistory(string FromCurrency, string ToCurrency, decimal Amount, decimal Price, LykkeTradeType TradeType, DateTime DateTime, string GasCurrency)
         {
             this.FromCurrency = FromCurrency;
             this.ToCurrency = ToCurrency;
             this.Amount = Amount;
             this.Price = Price;
             this.TradeType = TradeType;
-            this.Timestamp = Timestamp;
+            this.DateTime = DateTime;
             this.GasCurrency = GasCurrency;
         }
 
@@ -59,7 +61,7 @@
 
             return tradingHistory.FromCurrency == this.FromCurrency && tradingHistory.ToCurrency == this.ToCurrency
                     && tradingHistory.Amount == this.Amount && tradingHistory.Price == this.Price &&
-                    tradingHistory.TradeType == this.TradeType && tradingHistory.Timestamp == this.Timestamp
+                    tradingHistory.TradeType == this.TradeType && tradingHistory.DateTime == this.DateTime
                     && tradingHistory.GasCurrency == this.GasCurrency;
         }
 

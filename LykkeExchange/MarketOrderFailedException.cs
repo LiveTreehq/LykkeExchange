@@ -2,7 +2,7 @@
 
 namespace ExchangeMarket.LykkeExchange
 {
-    internal class CurrencyNotAvailableAtExchangeException : Exception
+    internal class MarketOrderFailedException : Exception
     {
         string FromCurrency;
         string ToCurrency;
@@ -14,7 +14,7 @@ namespace ExchangeMarket.LykkeExchange
         /// <param name="ExchangeName"></param>
         /// <param name="FromCurrency"></param>
         /// <param name="ToCurrency"></param>
-        public CurrencyNotAvailableAtExchangeException(string ExchangeName, string FromCurrency, string ToCurrency) : base($"{ExchangeName} does not have conversion rates between {FromCurrency} and {ToCurrency}")
+        public MarketOrderFailedException(string ExchangeName, string FromCurrency, string ToCurrency) : base($"Market order between {FromCurrency} and {ToCurrency} failed in {ExchangeName}")
         {
             this.ExchangeName = ExchangeName;
             this.FromCurrency = FromCurrency;

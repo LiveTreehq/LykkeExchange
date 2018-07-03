@@ -6,6 +6,8 @@ namespace ExchangeMarket.LykkeExchange
 {
     public class LykkeExchange
     {
+        private const string LYKKE_EXCHANGE = "Lykke Exchange";
+
         // Get exchange rates
         internal static string URL = "https://public-api.lykke.com/api/AssetPairs/rate/";
 
@@ -32,22 +34,41 @@ namespace ExchangeMarket.LykkeExchange
         public LykkeExchangeRate GetExchangeRate(string FromCurrency, string ToCurrency)
         {
             string currencyCombination = GetCurrencyCombination(FromCurrency, ToCurrency);
+            LykkeMarketExchangeRate exchangeRate = FetchExchangeRate(currencyCombination);
 
-            string urlResponse = ThirdPartyRestCallsUtility.GET(URL + currencyCombination);
-
-            LykkeMarketExchangeRate exchangeRate = ExtractExchangeRate(urlResponse);
+            bool reversed = false;
+            if (exchangeRate == null)
+            {
+                reversed = true;
+                currencyCombination = GetReverseCurrencyCombination(FromCurrency, ToCurrency);
+                exchangeRate = FetchExchangeRate(currencyCombination);
+            }
 
             if (exchangeRate == null)
             {
-                throw new CurrencyNotAvailableAtExchangeException("Lykke Exchange", FromCurrency, ToCurrency);
+                throw new CurrencyNotAvailableAtExchangeException(LYKKE_EXCHANGE, FromCurrency, ToCurrency);
             }
 
-            return new LykkeExchangeRate(FromCurrency, ToCurrency, exchangeRate.ask, exchangeRate.bid);
+            return new LykkeExchangeRate(FromCurrency, ToCurrency, reversed ? exchangeRate.bid : exchangeRate.ask, reversed ? exchangeRate.ask : exchangeRate.bid);
+        }
+
+        private LykkeMarketExchangeRate FetchExchangeRate(string currencyCombination)
+        {
+            string urlResponse = ThirdPartyRestCallsUtility.GET(URL + currencyCombination);
+
+            LykkeMarketExchangeRate exchangeRate = ExtractExchangeRate(urlResponse);
+            
+            return exchangeRate;
         }
 
         private string GetCurrencyCombination(string FromCurrency, string ToCurrency)
         {
             return ToCurrency.ToString() + FromCurrency.ToString();
+        }
+
+        private string GetReverseCurrencyCombination(string FromCurrency, string ToCurrency)
+        {
+            return FromCurrency.ToString() + ToCurrency.ToString();
         }
 
         /// <summary>
@@ -61,16 +82,15 @@ namespace ExchangeMarket.LykkeExchange
         public List<LykkeHistory> GetTradingHistory(string FromCurrency, string ToCurrency, int Skip, int Count)
         {
             string currencyCombination = GetCurrencyCombination(FromCurrency, ToCurrency);
+            List<LykkeTrade> tradingHistory = FetchTradingHistory(Skip, Count, currencyCombination);
 
-            string urlToRequest = PublicTradingHistoryUrl + currencyCombination + "?skip=" + Skip;
-            if (Count > 0)
+            bool reversed = false;
+            if (tradingHistory == null)
             {
-                urlToRequest = urlToRequest + "&take=" + Count;
+                reversed = true;
+                currencyCombination = GetReverseCurrencyCombination(FromCurrency, ToCurrency);
+                tradingHistory = FetchTradingHistory(Skip, Count, currencyCombination);
             }
-
-            string urlResponse = ThirdPartyRestCallsUtility.GET(urlToRequest);
-
-            List<LykkeTrade> tradingHistory = ExtractExchangeTradingHistory(urlResponse);
 
             List<LykkeHistory> tradeHistories = new List<LykkeHistory>();
 
@@ -79,12 +99,35 @@ namespace ExchangeMarket.LykkeExchange
                 foreach (LykkeTrade trade in tradingHistory)
                 {
                     //TODO: Need to send right gas currency value
-                    tradeHistories.Add(new LykkeHistory(FromCurrency, ToCurrency, trade.volume, trade.price,
-                        trade.action == "Buy" ? LykkeTradeType.BUY : LykkeTradeType.SELL, ExchangeUtility.GetTimestamp(trade.dateTime), FromCurrency));
+                    tradeHistories.Add(new LykkeHistory(reversed ? ToCurrency : FromCurrency, reversed ? FromCurrency : ToCurrency, trade.volume, trade.price,
+                        trade.action == "Buy" ? LykkeTradeType.BUY : LykkeTradeType.SELL, trade.dateTime, reversed ? ToCurrency : FromCurrency));
                 }
             }
 
             return tradeHistories;
+        }
+
+        private List<LykkeTrade> FetchTradingHistory(int Skip, int Count, string currencyCombination)
+        {
+            string urlToRequest = PublicTradingHistoryUrl + currencyCombination + "?skip=" + Skip;
+            if (Count > 0)
+            {
+                urlToRequest = urlToRequest + "&take=" + Count;
+            }
+
+            string urlResponse = null;
+
+            try
+            {
+                urlResponse = ThirdPartyRestCallsUtility.GET(urlToRequest);
+            }
+            catch (Exception e)
+            {
+                urlResponse = null;
+            }
+
+            List<LykkeTrade> tradingHistory = ExtractExchangeTradingHistory(urlResponse);
+            return tradingHistory;
         }
 
         private List<LykkeTrade> ExtractExchangeTradingHistory(string data)
@@ -128,9 +171,22 @@ namespace ExchangeMarket.LykkeExchange
         /// <param name="skip">Number of recent trading histories to skip</param>
         /// <param name="take">Number of recent histories to collect after skipping <paramref name="Skip"/></param>
         /// <returns><see cref="LykkeTradeHistory"/></returns>
-        public LykkeTradeHistory[] GetWalletTradeInformation(string apiKey, string fromCurrency, string toCurrency, int skip, int take)
+        public LykkeTradeHistory[] GetWalletTradeInformation(string apiKey, string FromCurrency, string ToCurrency, int skip, int take)
         {
-            string CurrencyCombination = GetCurrencyCombination(fromCurrency, toCurrency);
+            string CurrencyCombination = GetCurrencyCombination(FromCurrency, ToCurrency);
+            LykkeMarketExchangeRate exchangeRate = FetchExchangeRate(CurrencyCombination);
+            bool reversed = false;
+            if (exchangeRate == null)
+            {
+                reversed = true;
+                CurrencyCombination = GetReverseCurrencyCombination(FromCurrency, ToCurrency);
+                exchangeRate = FetchExchangeRate(CurrencyCombination);
+                if (exchangeRate == null)
+                {
+                    throw new CurrencyNotAvailableAtExchangeException(LYKKE_EXCHANGE, FromCurrency, ToCurrency);
+                }
+            }
+
             string url = TransactionAPIUrl + "History/trades?assetPairId=" + CurrencyCombination + "&skip=" + skip + "&take=" + take;
 
             Dictionary<string, string> headers = new Dictionary<string, string>();
@@ -159,19 +215,35 @@ namespace ExchangeMarket.LykkeExchange
         /// </param>
         /// <param name="value">Volume of trade</param>
         /// <returns>Amount of resultant <paramref name="toCurrency"/> after executing market order.</returns>
-        public LykkeMoney MarketOrder(string apiKey, string fromCurrency, string toCurrency, LykkeTradeType tradeType, decimal value)
+        public LykkeMoney MarketOrder(string apiKey, string FromCurrency, string ToCurrency, LykkeTradeType tradeType, decimal value)
         {
             // Actual market order implementation
-            string CurrencyCombination = GetCurrencyCombination(fromCurrency, toCurrency);
+            string CurrencyCombination = GetCurrencyCombination(FromCurrency, ToCurrency);
             string url = TransactionAPIUrl + "Orders/market";
+
+            string orderAction = tradeType == LykkeTradeType.BUY ? "Buy" : "Sell";
+
+            LykkeMarketExchangeRate exchangeRate = FetchExchangeRate(CurrencyCombination);
+            bool reversed = false;
+            if (exchangeRate == null)
+            {
+                reversed = true;
+                CurrencyCombination = GetReverseCurrencyCombination(FromCurrency, ToCurrency);
+                exchangeRate = FetchExchangeRate(CurrencyCombination);
+                orderAction = tradeType == LykkeTradeType.BUY ? "Sell" : "Buy";
+                if (exchangeRate == null)
+                {
+                    throw new CurrencyNotAvailableAtExchangeException(LYKKE_EXCHANGE, FromCurrency, ToCurrency);
+                }
+            }
 
             Dictionary<string, string> headers = new Dictionary<string, string>();
             headers.Add("api-key", apiKey);
 
             Dictionary<string, Object> postData = new Dictionary<string, object>();
             postData.Add("AssetPairId", CurrencyCombination);
-            postData.Add("Asset", fromCurrency.ToString());
-            postData.Add("OrderAction", tradeType == LykkeTradeType.BUY ? "Buy" : "Sell");
+            postData.Add("Asset", reversed ? ToCurrency.ToString() : FromCurrency.ToString());
+            postData.Add("OrderAction", orderAction);
             postData.Add("Volume", value);
             postData.Add("executeOrders", false);
 
@@ -182,16 +254,16 @@ namespace ExchangeMarket.LykkeExchange
                 if (urlResponse != null)
                 {
                     MarketResult MarketResult = JsonConvert.DeserializeObject<MarketResult>(urlResponse, JsonSerializerSettings);
-                    return new LykkeMoney(MarketResult.Result, toCurrency);
+                    return new LykkeMoney(MarketResult.Result, ToCurrency);
                 }
                 else
                 {
-                    return new LykkeMoney(-1, toCurrency);
+                    throw new MarketOrderFailedException(LYKKE_EXCHANGE, FromCurrency, ToCurrency);
                 }
             }
             catch (Exception e)
             {
-                return new LykkeMoney(-1, toCurrency);
+                throw new MarketOrderFailedException(LYKKE_EXCHANGE, FromCurrency, ToCurrency);
             }
         }
     }
