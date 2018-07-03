@@ -175,10 +175,8 @@ namespace ExchangeMarket.LykkeExchange
         {
             string CurrencyCombination = GetCurrencyCombination(FromCurrency, ToCurrency);
             LykkeMarketExchangeRate exchangeRate = FetchExchangeRate(CurrencyCombination);
-            bool reversed = false;
             if (exchangeRate == null)
             {
-                reversed = true;
                 CurrencyCombination = GetReverseCurrencyCombination(FromCurrency, ToCurrency);
                 exchangeRate = FetchExchangeRate(CurrencyCombination);
                 if (exchangeRate == null)
