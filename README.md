@@ -1,77 +1,136 @@
 # LykkeExchange
+c# API wrappers for [Lykke Trading API](https://www.lykke.com/cp/lykke-trading-api)
 
-Features:
+# Features
+-  Fetch Exchange Rate between two currencies
+-  Get Trading History between two currencies
+-  Place Market Order on Lykke Exchange with API key.
+-  Fetch wallet Trading History between two currencies, we made using API key.
 
-1) Fetches exchange rates between two currencies if Lykke Supports them
-2) Fetches trading history for two currencies if Lykke Supports them
-3) Places market order using our wallet apiKey
-4) Fetch trading history for two currencies that we made using our wallet apiKey
+# API key generation
+API key is required for for wallet access and making API calls to Lykke Exchange
+See [API key generation](https://auth.lykke.com/signin?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3D2c6c77be-efd3-44b7-a381-940c90e52985%26scope%3Dprofile%2520email%2520address%26response_type%3Dtoken%26redirect_uri%3Dhttps%253A%252F%252Fwallet.lykke.com%252Fauth%26nonce%3DxXxvmySWwe9MDMZeIpU8%26state%3DrYnw6uFcMmXCz3Ytuihk) for to get your personal API key.
 
-How to generate the API Key:
+# Installion
+Clone or download the repository and build the project. LykkeExchange.dll is gererated inside bin/Debug of the root directory which can be referrenced in your projects.
 
-Just need to follow the steps given in https://www.lykke.com/cp/lykke-trading-api
+# Usage
+The module can be imported with the below statement
 
-How to call the functions:
 
-Initialize LykkeExchange
-LykkeExchange lykkeExchange = new LykkeExchange();
+```csharp
+using ExchangeMarket.LykkeExchange
+```
 
-1) To fetch Exchange Rates for any assetPair
- - LykkeExchangeRate exchangeRate = lykkeExchange.GetExchangeRate("ETH", "BTC");
+#### API Documentation
+##### Classes:
+* ```csharp 
+    public class LykkeExchange
+    ```
+    > Main entry point to Lykke Exchange
 
- - What does LykkeExchangeRate have:
-    - decimal Buy;
-    - string FromCurrency;
-    - decimal Sell;
-    - string ToCurrency;
+    ##### Methods:
+    * `LykkeExchange()`
+        > Default constructor.
     
-- What all exceptions does it throw:
-    - CurrencyNotAvailableAtExchangeException indicating that one or both currencies are not supported by LykkeExchange
- 
-2) To fetch Trading History
-- List<LykkeHistory> tradingHistory = lykkeExchange.GetTradingHistory("ETH", "BTC", 0, 100);
-    - 0 is basically Skip index
-    - 100 is basically Count index (How many entries to return from given Skip index)
+    * [LykkeExchangeRate]() GetExchangeRate(string FromCurrency, string ToCurrency)
+        > Get exchnage rate between FromCurrency to ToCurrency.
     
-- What does LykkeHistory have:
-    - decimal Amount;
-    - string FromCurrency;
-    - string GasCurrency;
-    - decimal Price;
-    - long Timestamp;
-    - string ToCurrency;
-    - LykkeTradeType TradeType; // Enum having SELL, BUY
+        Returns [LykkeExchangeRate]()
+    
+    * `List<[LykkeHistory]()> GetTradingHistory(string FromCurrency, string ToCurrency, int Skip, int Count)`
+        > Get trading histories between FromCurrency and ToCurrency from LykkeExchange skipping specified Skip number of recent Trading histories and fetching the next Count number of trading histories.
         
-- What all exceptions does it throw:
-    - CurrencyNotAvailableAtExchangeException indicating that one or both currencies are not supported by LykkeExchange
-
-3) Actually placing Market Order:
-- LykkeMoney money = lykkeExchange.MarketOrder(<API KEY>, "ETH", "BTC", LykkeTradeType.BUY, 1);
-    - This call can be used for both BUY and SELL call.
-    - 1 is the amount to be traded.
-
-- What does LykkeMoney have:
-    - decimal Amount // How much amount the trade yielded to
-    - string Currency // which was the currency it traded for
+        Returns a List of [LykkeHistory]()
     
-- What all exceptions does it throw:
-    - MarketOrderFailedException indicating that market order returned null from Lykke Exchange. It could be because you do not have sufficient wallet balance or any other reasons.
-    - CurrencyNotAvailableAtExchangeException indicating that one or both currencies are not supported by LykkeExchange
+    * `public [LykkeTradeHistory]()[] GetWalletTradeInformation(string apiKey, string FromCurrency, string ToCurrency, int skip, int take)`
     
-4) Fetching trade history of the transactions we did for an asset pair
-- LykkeTradeHistory[] walletTradeHistory = lykkeExchange.GetWalletTradeInformation(<API KEY>, "ETH", "BTC", 0, 10);
-    - 0 is basically Skip index
-    - 100 is basically Count index (How many entries to return from given Skip index)
+        >Get wallet trading histories between FromCurrency and ToCurrency from LykkeExchange skipping specified Skip number of recent Trading histories and fetching the next Count number of trading histories.with the wallet apikey.
+        
+         Returns List of [LykkeTradeHistory]()
+    
+    * `[LykkeMoney]() MarketOrder(string apiKey, string FromCurrency, string ToCurrency, [LykkeTradeType]() tradeType, decimal value)`
+    
+        > Execute a market order in lykke exchange. Buy or Sell a volume of an asset for another asset with the wallet apikey. 
+        
+        > **Arguments**:
+            1. apikey : wallet api key
+            2. FromCurrency : currency to trade from
+            3. ToCurrency : currency to trade for
+            4. tradeType : type of trade (Buy or Sell)
+            5. value : Transaction volume.
+    
+        Returns [LykkeMoney]()
+    
+* ```csharp
+    public class LykkeTradeHistory
+    ```
+    
+    > Class to Store Wallet trade information.
+    
+    **Members:**<br/>
+        * `DateTime DateTime`: Date time of trade<br/>
+        * `string Id` : Trade ID<br/>
+        * `string State` : current state of trade<br/>
+        * `decimal Amount` : Trade Volume<br/>
+        * `string Asset` : Trade Asset<br/>
+        * `string AssetPair` : Trade Asset Pair<br/>
+        * `decimal Price`: Trade Price<br/>
+* ```csharp
+    public enum LykkeTradeType
+    {
+        SELL, //ASK
+        BUY   //BID
+    }
+    ```
+* ```csharp
+    public class LykkeHistory
+    ```
+    
+    **Members:**<br/>
+        * `string FromCurrency` : From asset<br/>
+        * `string ToCurrency` : To asset<br/>
+        * `decimal Amount` : Trade Amount<br/>
+        * `decimal Price` : Trade Price<br/>
+        * `LykkeTradeType TradeType` : SELL or BUY<br/>
+        * `DateTime DateTime` : Date and time of trade<br/>
+    
+    **Methods:**
+    ```csharp
+        public LykkeHistory(string FromCurrency, string ToCurrency, decimal Amount, decimal Price, LykkeTradeType TradeType, DateTime DateTime)
+    ```
+        
+    > Default Constructor
 
-- What does LykkeTradeHistory have:
-    - DateTime DateTime;
-    - string Id;
-    - string State;
-    - decimal Amount;
-    - string Asset;
-    - string AssetPair;
-    - decimal Price;
-    - Fee Fee;
+
+* ```csharp
+    public class LykkeExchangeRate
+    ```
     
-- What all exceptions does it throw:
-    - CurrencyNotAvailableAtExchangeException indicating that one or both currencies are not supported by LykkeExchange
+    **Members:**<br/>
+        ***`string FromCurrency` : exchange from asset<br/>
+        ***`string ToCurrency` : exchange to asset<br/>
+        *** `decimal Sell` : seller price<br/>
+        *** `decimal Buy` : buyer price<br/>
+    **Methods:**
+    ```csharp
+    public LykkeExchangeRate(string FromCurrency, string ToCurrency, decimal Sell, decimal Buy)
+    ```
+    
+    > Default Constructor
+
+
+* ```csharp
+    public struct LykkeMoney : IEquatable<LykkeMoney>
+    ```
+ 
+    **Members:**<br/>
+    * `decimal amount` : Amount<br/>
+    * `string Currecncy` : Asset<br/>
+    
+    **Methods**
+    ```csharp
+    public LykkeMoney(decimal amount, string currency)
+    ```
+    > Default Constructor
+       
