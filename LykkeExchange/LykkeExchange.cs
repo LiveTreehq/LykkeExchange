@@ -93,7 +93,6 @@ namespace LykkeExchange
             {
                 foreach (var trade in tradingHistory)
                 {
-                    //TODO: Need to send right gas currency value
                     tradeHistories.Add(new LykkeHistory(reversed ? toCurrency : fromCurrency, reversed ? fromCurrency : toCurrency, trade.Volume, trade.Price,
                         trade.Action == "Buy" ? LykkeTradeType.BUY : LykkeTradeType.SELL, trade.DateTime));
                 }
@@ -156,7 +155,7 @@ namespace LykkeExchange
         /// Get trading history between <paramref name="fromCurrency"/> and <paramref name="toCurrency"/> from LykkeExchange
         /// </summary>
         /// <param name="apiKey">API key</param>
-        /// <param name="fromCurrency">Currecny to exchange from</param>
+        /// <param name="fromCurrency">Currency to exchange from</param>
         /// <param name="toCurrency">Currecny to exchange to</param>
         /// <param name="skip">Number of recent trading histories to skip</param>
         /// <param name="take">Number of recent histories to collect after skipping <paramref name="skip"/></param>
