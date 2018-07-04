@@ -216,12 +216,17 @@ namespace LykkeExchange
             {
                 reversed = true;
                 currencyCombination = GetReverseCurrencyCombination(fromCurrency, toCurrency);
+
                 exchangeRate = FetchExchangeRate(currencyCombination);
+                
                 orderAction = tradeType == LykkeTradeType.BUY ? "Sell" : "Buy";
                 if (exchangeRate == null)
                 {
                     throw new CurrencyNotAvailableAtExchangeException(LykkeExchangeName, fromCurrency, toCurrency);
                 }
+
+                // actual value is getting converted to reverse conversion as only reverse combination is supported
+                value = value * (tradeType == LykkeTradeType.BUY ? exchangeRate.Ask : exchangeRate.Bid);
             }
 
             var headers = new Dictionary<string, string>();
@@ -231,7 +236,7 @@ namespace LykkeExchange
             postData.Add("AssetPairId", currencyCombination);
             postData.Add("Asset", reversed ? toCurrency : fromCurrency);
             postData.Add("OrderAction", orderAction);
-            postData.Add("Volume", reversed ? 1 : value);
+            postData.Add("Volume", value);
             postData.Add("executeOrders", false);
 
             var postDataString = JsonConvert.SerializeObject(postData);
@@ -242,13 +247,7 @@ namespace LykkeExchange
                 {
                     var marketResult = JsonConvert.DeserializeObject<MarketResult>(urlResponse, this.JsonSerializerSettings);
                     var resultValue = marketResult.Result;
-                    if (reversed)
-                    {
-                        // As we have reversed the combination with the assumption exchange dint support from + to currencies but supports to + from
-                        // So we will have to recompute the value based on the value we got for 1 reverse conversion and then compute for the current.
-                        resultValue = value / resultValue; 
-                    }
-                    return new LykkeMoney(resultValue, toCurrency);
+                    return new LykkeMoney(value, toCurrency); // returning local converted value assuming result is more or less same as that of our input volume
                 }
                 else
                 {
