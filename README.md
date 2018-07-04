@@ -11,12 +11,23 @@ c# API wrappers for [Lykke Trading API](https://www.lykke.com/cp/lykke-trading-a
 API key is required for for wallet access and making API calls to Lykke Exchange
 See [API key generation](https://auth.lykke.com/signin?ReturnUrl=%2Fconnect%2Fauthorize%3Fclient_id%3D2c6c77be-efd3-44b7-a381-940c90e52985%26scope%3Dprofile%2520email%2520address%26response_type%3Dtoken%26redirect_uri%3Dhttps%253A%252F%252Fwallet.lykke.com%252Fauth%26nonce%3DxXxvmySWwe9MDMZeIpU8%26state%3DrYnw6uFcMmXCz3Ytuihk) for to get your personal API key.
 
-# Installion
-Clone or download the repository and build the project. LykkeExchange.dll is gererated inside bin/Debug of the root directory which can be referrenced in your projects.
+# Installation
+Clone or download the repository and build the project. LykkeExchange.dll is gererated inside bin/[Debug|Release] of the root directory which can be referrenced in your projects.
 
 # Usage
 The module can be imported with the below statement
 
+# License
+
+Standar [MIT License](https://opensource.org/licenses/MIT)
+
+Copyright 2018 LIVETREE
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ```csharp
 using ExchangeMarket.LykkeExchange
@@ -126,7 +137,7 @@ using ExchangeMarket.LykkeExchange
  
     **Members:**<br/>
     * `decimal amount` : Amount<br/>
-    * `string Currecncy` : Asset<br/>
+    * `string Currency` : Asset<br/>
     
     **Methods**
     ```csharp

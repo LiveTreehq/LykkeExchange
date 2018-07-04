@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 
-namespace ExchangeMarket.LykkeExchange
+namespace LykkeExchange
 {
     /// <summary>
     ///REST calls utilities 
@@ -20,13 +20,13 @@ namespace ExchangeMarket.LykkeExchange
         /// returns response json string if the query is successful and returns null if the response and NO Content
         /// </returns>
         /// <exception cref="WebException"></exception>
-        public static string GET(string url, Dictionary<string, string> headers = null)
+        public static string Get(string url, Dictionary<string, string> headers = null)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            var request = (HttpWebRequest)WebRequest.Create(url);
 
             if (headers != null)
             {
-                foreach (string key in headers.Keys)
+                foreach (var key in headers.Keys)
                 {
                     string value;
                     headers.TryGetValue(key, out value);
@@ -35,23 +35,23 @@ namespace ExchangeMarket.LykkeExchange
             }
             try
             {
-                WebResponse response = request.GetResponse();
+                var response = request.GetResponse();
                 if (((HttpWebResponse)response).StatusCode == HttpStatusCode.NoContent)
                     return null;
 
-                using (Stream responseStream = response.GetResponseStream())
+                using (var responseStream = response.GetResponseStream())
                 {
-                    StreamReader reader = new StreamReader(responseStream, System.Text.Encoding.UTF8);
+                    var reader = new StreamReader(responseStream, System.Text.Encoding.UTF8);
                     return reader.ReadToEnd();
                 }
             }
             catch (WebException ex)
             {
-                WebResponse errorResponse = ex.Response;
-                using (Stream responseStream = errorResponse.GetResponseStream())
+                var errorResponse = ex.Response;
+                using (var responseStream = errorResponse.GetResponseStream())
                 {
-                    StreamReader reader = new StreamReader(responseStream, System.Text.Encoding.GetEncoding("utf-8"));
-                    String errorText = reader.ReadToEnd();
+                    var reader = new StreamReader(responseStream, System.Text.Encoding.GetEncoding("utf-8"));
+                    var errorText = reader.ReadToEnd();
                     // log errorText
                 }
                 throw;
@@ -68,14 +68,14 @@ namespace ExchangeMarket.LykkeExchange
         /// returns response json string if the query is successful and returns null if the response and NO Content
         /// </returns>
         /// <exception cref="WebException"></exception>
-        public static string POST(string url, string jsonContent, Dictionary<string, string> headers = null)
+        public static string Post(string url, string jsonContent, Dictionary<string, string> headers = null)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            var request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";
 
             if (headers != null)
             {
-                foreach (string key in headers.Keys)
+                foreach (var key in headers.Keys)
                 {
                     string value;
                     headers.TryGetValue(key, out value);
@@ -83,33 +83,33 @@ namespace ExchangeMarket.LykkeExchange
                 }
             }
 
-            System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
-            Byte[] byteArray = encoding.GetBytes(jsonContent);
+            var encoding = new System.Text.UTF8Encoding();
+            var byteArray = encoding.GetBytes(jsonContent);
 
             request.ContentLength = byteArray.Length;
             request.ContentType = @"application/json";
 
-            using (Stream dataStream = request.GetRequestStream())
+            using (var dataStream = request.GetRequestStream())
             {
                 dataStream.Write(byteArray, 0, byteArray.Length);
             }
             long length = 0;
             try
             {
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                using (var response = (HttpWebResponse)request.GetResponse())
                 {
                     length = response.ContentLength;
                     if (response.StatusCode == HttpStatusCode.NoContent)
                         return null;
 
-                    using (Stream responseStream = response.GetResponseStream())
+                    using (var responseStream = response.GetResponseStream())
                     {
-                        StreamReader reader = new StreamReader(responseStream, System.Text.Encoding.UTF8);
+                        var reader = new StreamReader(responseStream, System.Text.Encoding.UTF8);
                         return reader.ReadToEnd();
                     }
                 }
             }
-            catch (WebException ex)
+            catch (WebException)
             {
                 // Log exception and throw as for GET example above
                 return null;

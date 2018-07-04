@@ -1,14 +1,14 @@
 ﻿using System;
 
-namespace ExchangeMarket.LykkeExchange
+namespace LykkeExchange
 { 
     /// <summary>
     /// Type of trade
     /// </summary>
     public enum LykkeTradeType
     {
-        SELL, //ASK
-        BUY   //BID
+        Sell, //ASK
+        Buy   //BID
     }
 
     /// <summary>
@@ -27,22 +27,22 @@ namespace ExchangeMarket.LykkeExchange
         /// <summary>
         /// Creates a LykkeHistory object with given arguments.
         /// </summary>
-        /// <param name="FromCurrency">Trade from currency</param>
-        /// <param name="ToCurrency">Trade to currency</param>
-        /// <param name="Amount">Trade Volume</param>
-        /// <param name="Price">Trading price</param>
-        /// <param name="TradeType">Type of the trade. <see cref="LykkeTradeType"/></param>
-        /// <param name="DateTime">Time Stamp of the trade</param>
-        /// <param name="GasCurrency"></param>
-        public LykkeHistory(string FromCurrency, string ToCurrency, decimal Amount, decimal Price, LykkeTradeType TradeType, DateTime DateTime, string GasCurrency)
+        /// <param name="fromCurrency">Trade from currency</param>
+        /// <param name="toCurrency">Trade to currency</param>
+        /// <param name="amount">Trade Volume</param>
+        /// <param name="price">Trading price</param>
+        /// <param name="tradeType">Type of the trade. <see cref="LykkeTradeType"/></param>
+        /// <param name="dateTime">Time Stamp of the trade</param>
+        /// <param name="gasCurrency"></param>
+        public LykkeHistory(string fromCurrency, string toCurrency, decimal amount, decimal price, LykkeTradeType tradeType, DateTime dateTime, string gasCurrency)
         {
-            this.FromCurrency = FromCurrency;
-            this.ToCurrency = ToCurrency;
-            this.Amount = Amount;
-            this.Price = Price;
-            this.TradeType = TradeType;
-            this.DateTime = DateTime;
-            this.GasCurrency = GasCurrency;
+            this.FromCurrency = fromCurrency;
+            this.ToCurrency = toCurrency;
+            this.Amount = amount;
+            this.Price = price;
+            this.TradeType = tradeType;
+            this.DateTime = dateTime;
+            this.GasCurrency = gasCurrency;
         }
 
         /// <summary>

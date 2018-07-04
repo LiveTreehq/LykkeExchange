@@ -1,24 +1,24 @@
 ﻿using System;
 
-namespace ExchangeMarket.LykkeExchange
+namespace LykkeExchange
 {
     internal class CurrencyNotAvailableAtExchangeException : Exception
     {
-        string FromCurrency;
-        string ToCurrency;
-        string ExchangeName;
+        private string _fromCurrency;
+        private string _toCurrency;
+        private string _exchangeName;
 
         /// <summary>
         /// Exception to handle unavailable conversion rates between currencies.
         /// </summary>
-        /// <param name="ExchangeName"></param>
-        /// <param name="FromCurrency"></param>
-        /// <param name="ToCurrency"></param>
-        public CurrencyNotAvailableAtExchangeException(string ExchangeName, string FromCurrency, string ToCurrency) : base($"{ExchangeName} does not have conversion rates between {FromCurrency} and {ToCurrency}")
+        /// <param name="exchangeName"></param>
+        /// <param name="fromCurrency"></param>
+        /// <param name="toCurrency"></param>
+        public CurrencyNotAvailableAtExchangeException(string exchangeName, string fromCurrency, string toCurrency) : base($"{exchangeName} does not have conversion rates between {fromCurrency} and {toCurrency}")
         {
-            this.ExchangeName = ExchangeName;
-            this.FromCurrency = FromCurrency;
-            this.ToCurrency = ToCurrency;
+            this._exchangeName = exchangeName;
+            this._fromCurrency = fromCurrency;
+            this._toCurrency = toCurrency;
         }
     }
 }

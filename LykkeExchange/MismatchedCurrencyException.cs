@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ExchangeMarket.LykkeExchange
+namespace LykkeExchange
 {
     /// <inheritdoc />
     /// <summary>

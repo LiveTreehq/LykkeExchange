@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ExchangeMarket.LykkeExchange
+namespace LykkeExchange
 {
     /// <summary>
     /// Money pattern implementation (according to Patterns of Enterprise Application Architecture (Fowler, 2002))
@@ -48,6 +48,7 @@ namespace ExchangeMarket.LykkeExchange
             var money = obj is LykkeMoney ? (LykkeMoney)obj : new LykkeMoney();
             return obj != null && this.Equals(money);
         }
+        /// <inheritdoc />
         /// <summary>
         /// Indicates whether the current object is equal to another object of the same type.
         /// </summary>
@@ -72,7 +73,7 @@ namespace ExchangeMarket.LykkeExchange
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        /// <exception cref="LiveTree.Platform.SeedTrader.Utils.Currency.MismatchedCurrencyException"></exception>
+        /// <exception cref="MismatchedCurrencyException"></exception>
         public static LykkeMoney operator +(LykkeMoney a, LykkeMoney b)
         {
             if (a.Currency != b.Currency) throw new MismatchedCurrencyException(a, b);
@@ -88,7 +89,7 @@ namespace ExchangeMarket.LykkeExchange
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        /// <exception cref="LiveTree.Platform.SeedTrader.Utils.Currency.MismatchedCurrencyException"></exception>
+        /// <exception cref="MismatchedCurrencyException"></exception>
         public static LykkeMoney operator -(LykkeMoney a, LykkeMoney b)
         {
             if (a.Currency != b.Currency) throw new MismatchedCurrencyException(a, b);
@@ -103,7 +104,7 @@ namespace ExchangeMarket.LykkeExchange
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        /// <exception cref="LiveTree.Platform.SeedTrader.Utils.Currency.MismatchedCurrencyException"></exception>
+        /// <exception cref="MismatchedCurrencyException"></exception>
         public static LykkeMoney operator -(LykkeMoney a) => new LykkeMoney(-a.Amount, a.Currency);
 
         /// <summary>
@@ -144,7 +145,7 @@ namespace ExchangeMarket.LykkeExchange
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        /// <exception cref="LiveTree.Platform.SeedTrader.Utils.Currency.MismatchedCurrencyException"></exception>
+        /// <exception cref="MismatchedCurrencyException"></exception>
         public static bool operator ==(LykkeMoney a, LykkeMoney b)
         {
             if (a.Currency != b.Currency) throw new MismatchedCurrencyException(a, b);
@@ -159,7 +160,7 @@ namespace ExchangeMarket.LykkeExchange
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        /// <exception cref="LiveTree.Platform.SeedTrader.Utils.Currency.MismatchedCurrencyException"></exception>
+        /// <exception cref="MismatchedCurrencyException"></exception>
         public static bool operator !=(LykkeMoney a, LykkeMoney b)
         {
             if (a.Currency != b.Currency) throw new MismatchedCurrencyException(a, b);
@@ -174,7 +175,7 @@ namespace ExchangeMarket.LykkeExchange
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        /// <exception cref="LiveTree.Platform.SeedTrader.Utils.Currency.MismatchedCurrencyException"></exception>
+        /// <exception cref="MismatchedCurrencyException"></exception>
         public static bool operator <(LykkeMoney a, LykkeMoney b)
         {
             if (a.Currency != b.Currency) throw new MismatchedCurrencyException(a, b);
@@ -189,7 +190,7 @@ namespace ExchangeMarket.LykkeExchange
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        /// <exception cref="LiveTree.Platform.SeedTrader.Utils.Currency.MismatchedCurrencyException"></exception>
+        /// <exception cref="MismatchedCurrencyException"></exception>
         public static bool operator >(LykkeMoney a, LykkeMoney b)
         {
             if (a.Currency != b.Currency) throw new MismatchedCurrencyException(a, b);
@@ -204,7 +205,7 @@ namespace ExchangeMarket.LykkeExchange
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        /// <exception cref="LiveTree.Platform.SeedTrader.Utils.Currency.MismatchedCurrencyException"></exception>
+        /// <exception cref="MismatchedCurrencyException"></exception>
         public static bool operator <=(LykkeMoney a, LykkeMoney b)
         {
             if (a.Currency != b.Currency) throw new MismatchedCurrencyException(a, b);
@@ -219,7 +220,7 @@ namespace ExchangeMarket.LykkeExchange
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        /// <exception cref="LiveTree.Platform.SeedTrader.Utils.Currency.MismatchedCurrencyException"></exception>
+        /// <exception cref="MismatchedCurrencyException"></exception>
         public static bool operator >=(LykkeMoney a, LykkeMoney b)
         {
             if (a.Currency != b.Currency) throw new MismatchedCurrencyException(a, b);
