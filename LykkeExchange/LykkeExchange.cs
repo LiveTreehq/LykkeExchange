@@ -95,7 +95,7 @@ namespace LykkeExchange
                 {
                     //TODO: Need to send right gas currency value
                     tradeHistories.Add(new LykkeHistory(reversed ? toCurrency : fromCurrency, reversed ? fromCurrency : toCurrency, trade.Volume, trade.Price,
-                        trade.Action == "Buy" ? LykkeTradeType.Buy : LykkeTradeType.Sell, trade.DateTime, reversed ? toCurrency : fromCurrency));
+                        trade.Action == "Buy" ? LykkeTradeType.BUY : LykkeTradeType.SELL, trade.DateTime));
                 }
             }
 
@@ -209,7 +209,7 @@ namespace LykkeExchange
             var currencyCombination = GetCurrencyCombination(fromCurrency, toCurrency);
             var url = TransactionApiUrl + "Orders/market";
 
-            var orderAction = tradeType == LykkeTradeType.Buy ? "Buy" : "Sell";
+            var orderAction = tradeType == LykkeTradeType.BUY ? "Buy" : "Sell";
 
             var exchangeRate = FetchExchangeRate(currencyCombination);
             var reversed = false;
@@ -218,7 +218,7 @@ namespace LykkeExchange
                 reversed = true;
                 currencyCombination = GetReverseCurrencyCombination(fromCurrency, toCurrency);
                 exchangeRate = FetchExchangeRate(currencyCombination);
-                orderAction = tradeType == LykkeTradeType.Buy ? "Sell" : "Buy";
+                orderAction = tradeType == LykkeTradeType.BUY ? "Sell" : "Buy";
                 if (exchangeRate == null)
                 {
                     throw new CurrencyNotAvailableAtExchangeException(LykkeExchangeName, fromCurrency, toCurrency);
@@ -232,7 +232,7 @@ namespace LykkeExchange
             postData.Add("AssetPairId", currencyCombination);
             postData.Add("Asset", reversed ? toCurrency : fromCurrency);
             postData.Add("OrderAction", orderAction);
-            postData.Add("Volume", value);
+            postData.Add("Volume", reversed ? 1 : value);
             postData.Add("executeOrders", false);
 
             var postDataString = JsonConvert.SerializeObject(postData);
@@ -242,7 +242,14 @@ namespace LykkeExchange
                 if (urlResponse != null)
                 {
                     var marketResult = JsonConvert.DeserializeObject<MarketResult>(urlResponse, this.JsonSerializerSettings);
-                    return new LykkeMoney(marketResult.Result, toCurrency);
+                    var resultValue = marketResult.Result;
+                    if (reversed)
+                    {
+                        // As we have reversed the combination with the assumption exchange dint support from + to currencies but supports to + from
+                        // So we will have to recompute the value based on the value we got for 1 reverse conversion and then compute for the current.
+                        resultValue = value / resultValue; 
+                    }
+                    return new LykkeMoney(resultValue, toCurrency);
                 }
                 else
                 {
