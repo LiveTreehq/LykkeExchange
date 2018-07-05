@@ -50,7 +50,7 @@ namespace LykkeExchange
                 throw new CurrencyNotAvailableAtExchangeException(LykkeExchangeName, fromCurrency, toCurrency);
             }
 
-            return new LykkeExchangeRate(fromCurrency, toCurrency, reversed ? exchangeRate.Bid : exchangeRate.Ask, reversed ? exchangeRate.Ask : exchangeRate.Bid);
+            return new LykkeExchangeRate(fromCurrency, toCurrency, reversed ? exchangeRate.bid : exchangeRate.ask, reversed ? exchangeRate.ask : exchangeRate.bid);
         }
 
         private LykkeMarketExchangeRate FetchExchangeRate(string currencyCombination)
@@ -140,7 +140,7 @@ namespace LykkeExchange
         private Dictionary<string, LykkeMarketExchangeRate> ExtractExchangeRates(string data)
         {
             var lykkeExchangeRates = JsonConvert.DeserializeObject<LykkeMarketExchangeRate[]>(data);
-            return lykkeExchangeRates.ToDictionary(exchangeRate => exchangeRate.Id);
+            return lykkeExchangeRates.ToDictionary(exchangeRate => exchangeRate.id);
         }
 
         private LykkeMarketExchangeRate ExtractExchangeRate(string data)
@@ -226,7 +226,7 @@ namespace LykkeExchange
                 }
 
                 // actual value is getting converted to reverse conversion as only reverse combination is supported
-                value = value * (tradeType == LykkeTradeType.BUY ? exchangeRate.Ask : exchangeRate.Bid);
+                value = value * (tradeType == LykkeTradeType.BUY ? exchangeRate.ask : exchangeRate.bid);
             }
 
             var headers = new Dictionary<string, string>();
@@ -301,9 +301,9 @@ namespace LykkeExchange
 
     internal class LykkeMarketExchangeRate
     {
-        public string Id;
-        public decimal Bid;
-        public decimal Ask;
+        public string id;
+        public decimal bid;
+        public decimal ask;
     }
 
     internal class LykkeTrade
