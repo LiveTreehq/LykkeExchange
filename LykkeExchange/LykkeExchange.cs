@@ -247,7 +247,8 @@ namespace LykkeExchange
                 {
                     var marketResult = JsonConvert.DeserializeObject<MarketResult>(urlResponse, this.JsonSerializerSettings);
                     var resultValue = marketResult.Result;
-                    return new LykkeMoney(value, toCurrency); // returning local converted value assuming result is more or less same as that of our input volume
+                    // if reversed returning local converted value assuming result is more or less same as that of our input volume
+                    return reversed ? new LykkeMoney(value, toCurrency) : new LykkeMoney(resultValue, toCurrency); 
                 }
                 else
                 {
