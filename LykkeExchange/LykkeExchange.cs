@@ -50,7 +50,7 @@ namespace LykkeExchange
                 throw new CurrencyNotAvailableAtExchangeException(LykkeExchangeName, fromCurrency, toCurrency);
             }
 
-            return new LykkeExchangeRate(fromCurrency, toCurrency, reversed ? exchangeRate.bid : exchangeRate.ask, reversed ? exchangeRate.ask : exchangeRate.bid);
+            return new LykkeExchangeRate(fromCurrency, toCurrency, reversed ? 1/exchangeRate.bid : exchangeRate.ask, reversed ? 1/exchangeRate.ask : exchangeRate.bid);
         }
 
         private LykkeMarketExchangeRate FetchExchangeRate(string currencyCombination)
