@@ -31,26 +31,23 @@ namespace LykkeExchange
         /// <param name="fromCurrency">Currecny to exchange from</param>
         /// <param name="toCurrency">Currecny to exchange for</param>
         /// <returns></returns>
-        /// <exception cref="CurrencyNotAvailableAtExchangeException">Throws when the exchange rate is not available in LykkeExchange</exception>
+        /// <exception cref="CurrencyCombinationNotSupportedAtExchange">Throws when the exchange rate is not available in LykkeExchange</exception>
         public LykkeExchangeRate GetExchangeRate(string fromCurrency, string toCurrency)
         {
-            var currencyCombination = GetCurrencyCombination(fromCurrency, toCurrency);
+            var currencyCombination = GetCurrencyCombination(fromCurrency.ToString(), toCurrency.ToString());
             var exchangeRate = FetchExchangeRate(currencyCombination);
 
-            var reversed = false;
-            if (exchangeRate == null)
-            {
-                reversed = true;
-                currencyCombination = GetReverseCurrencyCombination(fromCurrency, toCurrency);
-                exchangeRate = FetchExchangeRate(currencyCombination);
-            }
+            if (exchangeRate != null)
+                return new LykkeExchangeRate(fromCurrency, toCurrency, 1 / exchangeRate.ask, 1 / exchangeRate.bid);
 
-            if (exchangeRate == null)
-            {
-                throw new CurrencyNotAvailableAtExchangeException(LykkeExchangeName, fromCurrency, toCurrency);
-            }
+            currencyCombination = GetReverseCurrencyCombination(fromCurrency.ToString(), toCurrency.ToString());
+            exchangeRate = FetchExchangeRate(currencyCombination);
 
-            return new LykkeExchangeRate(fromCurrency, toCurrency, reversed ? 1/exchangeRate.bid : exchangeRate.ask, reversed ? 1/exchangeRate.ask : exchangeRate.bid);
+            if (exchangeRate != null)
+            {
+                return new LykkeExchangeRate(fromCurrency, toCurrency, exchangeRate.bid, exchangeRate.ask);
+            }
+            throw new CurrencyCombinationNotSupportedAtExchange(LykkeExchangeName, fromCurrency, toCurrency);
         }
 
         private LykkeMarketExchangeRate FetchExchangeRate(string currencyCombination)
@@ -170,7 +167,7 @@ namespace LykkeExchange
                 exchangeRate = FetchExchangeRate(currencyCombination);
                 if (exchangeRate == null)
                 {
-                    throw new CurrencyNotAvailableAtExchangeException(LykkeExchangeName, fromCurrency, toCurrency);
+                    throw new CurrencyCombinationNotSupportedAtExchange(LykkeExchangeName, fromCurrency, toCurrency);
                 }
             }
 
@@ -205,28 +202,28 @@ namespace LykkeExchange
         public LykkeMoney MarketOrder(string apiKey, string fromCurrency, string toCurrency, LykkeTradeType tradeType, decimal value)
         {
             // Actual market order implementation
-            var currencyCombination = GetCurrencyCombination(fromCurrency, toCurrency);
+            var currencyCombination = GetCurrencyCombination(fromCurrency.ToString(), toCurrency.ToString());
             var url = TransactionApiUrl + "Orders/market";
 
             var orderAction = tradeType == LykkeTradeType.BUY ? "Buy" : "Sell";
 
             var exchangeRate = FetchExchangeRate(currencyCombination);
             var reversed = false;
+
             if (exchangeRate == null)
             {
                 reversed = true;
-                currencyCombination = GetReverseCurrencyCombination(fromCurrency, toCurrency);
-
+                currencyCombination = GetReverseCurrencyCombination(fromCurrency.ToString(), toCurrency.ToString());
                 exchangeRate = FetchExchangeRate(currencyCombination);
-                
+
+                // actual value is getting converted to reverse conversion as only reverse combination is supported
+                // Note: Even though we are doing reverse combination but we do not do 1/ as the default exchange rates of lykke are given in toCurrrencyfromCurrency (reverse) format
+                value = value * (tradeType == LykkeTradeType.BUY ? exchangeRate.ask : exchangeRate.bid);
                 orderAction = tradeType == LykkeTradeType.BUY ? "Sell" : "Buy";
                 if (exchangeRate == null)
                 {
-                    throw new CurrencyNotAvailableAtExchangeException(LykkeExchangeName, fromCurrency, toCurrency);
+                    throw new CurrencyCombinationNotSupportedAtExchange(LykkeExchangeName, fromCurrency, toCurrency);
                 }
-
-                // actual value is getting converted to reverse conversion as only reverse combination is supported
-                value = value * (tradeType == LykkeTradeType.BUY ? exchangeRate.ask : exchangeRate.bid);
             }
 
             var headers = new Dictionary<string, string>();
@@ -240,24 +237,23 @@ namespace LykkeExchange
             postData.Add("executeOrders", false);
 
             var postDataString = JsonConvert.SerializeObject(postData);
+
             var urlResponse = ThirdPartyRestCallsUtility.Post(url, postDataString, headers);
             try
             {
                 if (urlResponse != null)
                 {
                     var marketResult = JsonConvert.DeserializeObject<MarketResult>(urlResponse, this.JsonSerializerSettings);
-                    var resultValue = marketResult.Result;
-                    // if reversed returning local converted value assuming result is more or less same as that of our input volume
-                    return reversed ? new LykkeMoney(value, toCurrency) : new LykkeMoney(resultValue, toCurrency); 
+                    return reversed ? new LykkeMoney(value, toCurrency) : new LykkeMoney(marketResult.Result, toCurrency);
                 }
                 else
                 {
-                    throw new MarketOrderFailedException(LykkeExchangeName, fromCurrency, toCurrency);
+                    throw new MarketOrderFailedException(LykkeExchangeName, fromCurrency.ToString(), toCurrency.ToString());
                 }
             }
             catch (Exception e)
             {
-                throw new MarketOrderFailedException(LykkeExchangeName, fromCurrency, toCurrency);
+                throw new MarketOrderFailedException(LykkeExchangeName, fromCurrency.ToString(), toCurrency.ToString());
             }
         }
     }
