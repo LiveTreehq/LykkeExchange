@@ -44,7 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LykkeMoney.cs" />
-    <Compile Include="CurrencyNotAvailableAtExchangeException.cs" />
+    <Compile Include="CurrencyCombinationNotSupportedAtExchange.cs" />
     <Compile Include="LykkeExchangeRate.cs" />
     <Compile Include="LykkeExchange.cs" />
     <Compile Include="MarketOrderFailedException.cs" />
