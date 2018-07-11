@@ -1,7 +1,8 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text;
 
 namespace LykkeExchange
 {
@@ -70,7 +71,7 @@ namespace LykkeExchange
         /// <exception cref="WebException"></exception>
         public static string Post(string url, string jsonContent, Dictionary<string, string> headers = null)
         {
-            var request = (HttpWebRequest)WebRequest.Create(url);
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "POST";
 
             if (headers != null)
@@ -83,20 +84,22 @@ namespace LykkeExchange
                 }
             }
 
-            var encoding = new System.Text.UTF8Encoding();
-            var byteArray = encoding.GetBytes(jsonContent);
-
-            request.ContentLength = byteArray.Length;
-            request.ContentType = @"application/json";
-
-            using (var dataStream = request.GetRequestStream())
+            if (jsonContent != null && jsonContent.Length > 0)
             {
-                dataStream.Write(byteArray, 0, byteArray.Length);
+                var byteArray = Encoding.UTF8.GetBytes(jsonContent);
+                request.ContentLength = byteArray.Length;
+                request.ContentType = @"application/json";
+
+                using (var dataStream = request.GetRequestStream())
+                {
+                    dataStream.Write(byteArray, 0, byteArray.Length);
+                }
             }
+
             long length = 0;
             try
             {
-                using (var response = (HttpWebResponse)request.GetResponse())
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
                     length = response.ContentLength;
                     if (response.StatusCode == HttpStatusCode.NoContent)
@@ -109,7 +112,7 @@ namespace LykkeExchange
                     }
                 }
             }
-            catch (WebException)
+            catch (WebException e)
             {
                 // Log exception and throw as for GET example above
                 return null;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace LykkeExchange
 {
@@ -59,9 +60,9 @@ namespace LykkeExchange
             return exchangeRate;
         }
 
-        private string GetCurrencyCombination(string fromCurrency, string toCurrency) => $"{toCurrency}{fromCurrency}";
+        private string GetCurrencyCombination(string fromCurrency, string toCurrency) => $"{toCurrency.ToUpper()}{fromCurrency.ToUpper()}";
         
-        private string GetReverseCurrencyCombination(string fromCurrency, string toCurrency) => $"{fromCurrency}{toCurrency}";
+        private string GetReverseCurrencyCombination(string fromCurrency, string toCurrency) => $"{fromCurrency.ToUpper()}{toCurrency.ToUpper()}";
         
         /// <summary>
         /// Get trading history between <paramref name="fromCurrency"/> and <paramref name="toCurrency"/> from LykkeExchange
@@ -188,6 +189,47 @@ namespace LykkeExchange
             }
         }
 
+        public LykkeWalletBalance[] GetBalances(string apiKey)
+        {
+            var url = TransactionApiUrl + "Wallets";
+            var headers = new Dictionary<string, string>();
+            headers.Add("api-key", apiKey);
+
+            var urlResponse = ThirdPartyRestCallsUtility.Post(url, "", headers);
+            if (urlResponse != null)
+            {
+                LykkeWalletBalance[] walletBalances = JsonConvert.DeserializeObject<LykkeWalletBalance[]>(urlResponse, this.JsonSerializerSettings);
+                return walletBalances;
+            }
+
+            return null;
+        }
+
+        private LykkeWalletBalance GetBalance(string apiKey, string assetId)
+        {
+            var url = TransactionApiUrl + "Wallets";
+            var headers = new Dictionary<string, string>();
+            headers.Add("api-key", apiKey);
+
+            var urlResponse = ThirdPartyRestCallsUtility.Post(url, "", headers);
+            if (urlResponse != null)
+            {
+                LykkeWalletBalance[] walletBalances = JsonConvert.DeserializeObject<LykkeWalletBalance[]>(urlResponse, this.JsonSerializerSettings);
+                if (walletBalances != null && walletBalances.Length > 0)
+                {
+                    foreach (LykkeWalletBalance walletBalance in walletBalances)
+                    {
+                        if (walletBalance.AssetId.ToLower().Equals(assetId.ToLower()))
+                        {
+                            return walletBalance;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Execute a market order in lykke exchange. Buy or Sell a volume of an asset for another asset.
         /// </summary>
@@ -201,8 +243,12 @@ namespace LykkeExchange
         /// <returns>Amount of resultant <paramref name="toCurrency"/> after executing market order.</returns>
         public LykkeMoney MarketOrder(string apiKey, string fromCurrency, string toCurrency, LykkeTradeType tradeType, decimal value)
         {
+            LykkeWalletBalance walletBalance = GetBalance(apiKey, fromCurrency);
+            if (walletBalance == null)
+                throw new InsufficientWalletBalanceException(LykkeExchangeName, fromCurrency);
+
             // Actual market order implementation
-            var currencyCombination = GetCurrencyCombination(fromCurrency.ToString(), toCurrency.ToString());
+            var currencyCombination = GetCurrencyCombination(fromCurrency, toCurrency);
             var url = TransactionApiUrl + "Orders/market";
 
             var orderAction = tradeType == LykkeTradeType.BUY ? "Buy" : "Sell";
@@ -310,5 +356,12 @@ namespace LykkeExchange
         public decimal Volume;
         public string Action;
         public decimal Price;
+    }
+
+    public class LykkeWalletBalance
+    {
+        public string AssetId;
+        public decimal Balance;
+        public decimal Reserved;
     }
 }
