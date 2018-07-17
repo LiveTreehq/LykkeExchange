@@ -49,12 +49,12 @@ namespace LykkeExchange
             var urlResponse = ThirdPartyRestCallsUtility.Get(Url + currencyCombination);
 
             var exchangeRate = ExtractExchangeRate(urlResponse);
-            
+
             return exchangeRate;
         }
 
         private string GetCurrencyCombination(string fromCurrency, string toCurrency) => $"{fromCurrency.ToUpper()}{toCurrency.ToUpper()}";
-        
+
         /// <summary>
         /// Get trading history between <paramref name="fromCurrency"/> and <paramref name="toCurrency"/> from LykkeExchange
         /// </summary>
@@ -79,7 +79,8 @@ namespace LykkeExchange
             {
                 foreach (var trade in tradingHistory)
                 {
-                    tradeHistories.Add(new LykkeHistory(fromCurrency, toCurrency, trade.Volume, trade.Price, trade.Action == "Buy" ? LykkeTradeType.BUY : LykkeTradeType.SELL, trade.DateTime));
+                    tradeHistories.Add(new LykkeHistory(fromCurrency, toCurrency, trade.Volume, trade.Price,
+                        trade.Action == "Buy" ? LykkeTradeType.BUY : LykkeTradeType.SELL, trade.DateTime));
                 }
             }
 
@@ -171,13 +172,18 @@ namespace LykkeExchange
             }
         }
 
+        /// <summary>
+        /// Returns all available balances in the exchange wallet
+        /// </summary>
+        /// <param name="apiKey"></param>
+        /// <returns></returns>
         public LykkeWalletBalance[] GetBalances(string apiKey)
         {
             var url = TransactionApiUrl + "Wallets";
             var headers = new Dictionary<string, string>();
             headers.Add("api-key", apiKey);
 
-            var urlResponse = ThirdPartyRestCallsUtility.Post(url, "", headers);
+            var urlResponse = ThirdPartyRestCallsUtility.Get(url, headers);
             if (urlResponse != null)
             {
                 LykkeWalletBalance[] walletBalances = JsonConvert.DeserializeObject<LykkeWalletBalance[]>(urlResponse, this.JsonSerializerSettings);
@@ -187,24 +193,22 @@ namespace LykkeExchange
             return null;
         }
 
-        private LykkeWalletBalance GetBalance(string apiKey, string assetId)
+        /// <summary>
+        /// Returns the balance of the given assetId for the wallet backed by apiKey
+        /// </summary>
+        /// <param name="apiKey"></param>
+        /// <param name="assetId"></param>
+        /// <returns></returns>
+        public LykkeWalletBalance GetBalance(string apiKey, string assetId)
         {
-            var url = TransactionApiUrl + "Wallets";
-            var headers = new Dictionary<string, string>();
-            headers.Add("api-key", apiKey);
-
-            var urlResponse = ThirdPartyRestCallsUtility.Post(url, "", headers);
-            if (urlResponse != null)
+            LykkeWalletBalance[] walletBalances = GetBalances(apiKey);
+            if (walletBalances != null && walletBalances.Length > 0)
             {
-                LykkeWalletBalance[] walletBalances = JsonConvert.DeserializeObject<LykkeWalletBalance[]>(urlResponse, this.JsonSerializerSettings);
-                if (walletBalances != null && walletBalances.Length > 0)
+                foreach (LykkeWalletBalance walletBalance in walletBalances)
                 {
-                    foreach (LykkeWalletBalance walletBalance in walletBalances)
+                    if (walletBalance.AssetId.ToLower().Equals(assetId.ToLower()))
                     {
-                        if (walletBalance.AssetId.ToLower().Equals(assetId.ToLower()))
-                        {
-                            return walletBalance;
-                        }
+                        return walletBalance;
                     }
                 }
             }
@@ -227,27 +231,25 @@ namespace LykkeExchange
         {
             // Actual market order implementation
             var currencyCombination = GetCurrencyCombination(fromCurrency, toCurrency);
-            var url = TransactionApiUrl + "Orders/market";
 
             var orderAction = tradeType == LykkeTradeType.BUY ? "Buy" : "Sell";
 
             var exchangeRate = FetchExchangeRate(currencyCombination);
-            var reversed = false;
 
             if (exchangeRate == null)
             {
                 throw new CurrencyCombinationNotSupportedAtExchange(LykkeExchangeName, fromCurrency, toCurrency);
             }
 
+            var url = TransactionApiUrl + "Orders/market";
             var headers = new Dictionary<string, string>();
             headers.Add("api-key", apiKey);
 
             var postData = new Dictionary<string, object>();
             postData.Add("AssetPairId", currencyCombination);
-            postData.Add("Asset", reversed ? toCurrency : fromCurrency);
+            postData.Add("Asset", fromCurrency.ToString());
             postData.Add("OrderAction", orderAction);
             postData.Add("Volume", value);
-            postData.Add("executeOrders", false);
 
             var postDataString = JsonConvert.SerializeObject(postData);
 
@@ -274,7 +276,7 @@ namespace LykkeExchange
             }
         }
     }
-    
+
     /// <summary>
     /// Lykke Trade History to consume trading history of given Asset Pair
     /// </summary>
