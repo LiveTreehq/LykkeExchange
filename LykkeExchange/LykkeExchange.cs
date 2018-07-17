@@ -39,15 +39,8 @@ namespace LykkeExchange
             var exchangeRate = FetchExchangeRate(currencyCombination);
 
             if (exchangeRate != null)
-                return new LykkeExchangeRate(fromCurrency, toCurrency, 1 / exchangeRate.ask, 1 / exchangeRate.bid);
+                return new LykkeExchangeRate(fromCurrency, toCurrency, exchangeRate.ask, exchangeRate.bid);
 
-            currencyCombination = GetReverseCurrencyCombination(fromCurrency.ToString(), toCurrency.ToString());
-            exchangeRate = FetchExchangeRate(currencyCombination);
-
-            if (exchangeRate != null)
-            {
-                return new LykkeExchangeRate(fromCurrency, toCurrency, exchangeRate.bid, exchangeRate.ask);
-            }
             throw new CurrencyCombinationNotSupportedAtExchange(LykkeExchangeName, fromCurrency, toCurrency);
         }
 
@@ -60,9 +53,7 @@ namespace LykkeExchange
             return exchangeRate;
         }
 
-        private string GetCurrencyCombination(string fromCurrency, string toCurrency) => $"{toCurrency.ToUpper()}{fromCurrency.ToUpper()}";
-        
-        private string GetReverseCurrencyCombination(string fromCurrency, string toCurrency) => $"{fromCurrency.ToUpper()}{toCurrency.ToUpper()}";
+        private string GetCurrencyCombination(string fromCurrency, string toCurrency) => $"{fromCurrency.ToUpper()}{toCurrency.ToUpper()}";
         
         /// <summary>
         /// Get trading history between <paramref name="fromCurrency"/> and <paramref name="toCurrency"/> from LykkeExchange
@@ -77,12 +68,9 @@ namespace LykkeExchange
             var currencyCombination = GetCurrencyCombination(fromCurrency, toCurrency);
             var tradingHistory = FetchTradingHistory(skip, count, currencyCombination);
 
-            var reversed = false;
             if (tradingHistory == null)
             {
-                reversed = true;
-                currencyCombination = GetReverseCurrencyCombination(fromCurrency, toCurrency);
-                tradingHistory = FetchTradingHistory(skip, count, currencyCombination);
+                throw new CurrencyCombinationNotSupportedAtExchange(LykkeExchangeName, fromCurrency, toCurrency);
             }
 
             var tradeHistories = new List<LykkeHistory>();
@@ -91,8 +79,7 @@ namespace LykkeExchange
             {
                 foreach (var trade in tradingHistory)
                 {
-                    tradeHistories.Add(new LykkeHistory(reversed ? toCurrency : fromCurrency, reversed ? fromCurrency : toCurrency, trade.Volume, trade.Price,
-                        trade.Action == "Buy" ? LykkeTradeType.BUY : LykkeTradeType.SELL, trade.DateTime));
+                    tradeHistories.Add(new LykkeHistory(fromCurrency, toCurrency, trade.Volume, trade.Price, trade.Action == "Buy" ? LykkeTradeType.BUY : LykkeTradeType.SELL, trade.DateTime));
                 }
             }
 
@@ -164,12 +151,7 @@ namespace LykkeExchange
             var exchangeRate = FetchExchangeRate(currencyCombination);
             if (exchangeRate == null)
             {
-                currencyCombination = GetReverseCurrencyCombination(fromCurrency, toCurrency);
-                exchangeRate = FetchExchangeRate(currencyCombination);
-                if (exchangeRate == null)
-                {
-                    throw new CurrencyCombinationNotSupportedAtExchange(LykkeExchangeName, fromCurrency, toCurrency);
-                }
+                throw new CurrencyCombinationNotSupportedAtExchange(LykkeExchangeName, fromCurrency, toCurrency);
             }
 
             var url = TransactionApiUrl + "History/trades?assetPairId=" + currencyCombination + "&skip=" + skip + "&take=" + take;
@@ -243,10 +225,6 @@ namespace LykkeExchange
         /// <returns>Amount of resultant <paramref name="toCurrency"/> after executing market order.</returns>
         public LykkeMoney MarketOrder(string apiKey, string fromCurrency, string toCurrency, LykkeTradeType tradeType, decimal value)
         {
-            LykkeWalletBalance walletBalance = GetBalance(apiKey, fromCurrency);
-            if (walletBalance == null)
-                throw new InsufficientWalletBalanceException(LykkeExchangeName, fromCurrency);
-
             // Actual market order implementation
             var currencyCombination = GetCurrencyCombination(fromCurrency, toCurrency);
             var url = TransactionApiUrl + "Orders/market";
@@ -258,18 +236,7 @@ namespace LykkeExchange
 
             if (exchangeRate == null)
             {
-                reversed = true;
-                currencyCombination = GetReverseCurrencyCombination(fromCurrency.ToString(), toCurrency.ToString());
-                exchangeRate = FetchExchangeRate(currencyCombination);
-
-                // actual value is getting converted to reverse conversion as only reverse combination is supported
-                // Note: Even though we are doing reverse combination but we do not do 1/ as the default exchange rates of lykke are given in toCurrrencyfromCurrency (reverse) format
-                value = value * (tradeType == LykkeTradeType.BUY ? exchangeRate.ask : exchangeRate.bid);
-                orderAction = tradeType == LykkeTradeType.BUY ? "Sell" : "Buy";
-                if (exchangeRate == null)
-                {
-                    throw new CurrencyCombinationNotSupportedAtExchange(LykkeExchangeName, fromCurrency, toCurrency);
-                }
+                throw new CurrencyCombinationNotSupportedAtExchange(LykkeExchangeName, fromCurrency, toCurrency);
             }
 
             var headers = new Dictionary<string, string>();
@@ -284,13 +251,17 @@ namespace LykkeExchange
 
             var postDataString = JsonConvert.SerializeObject(postData);
 
-            var urlResponse = ThirdPartyRestCallsUtility.Post(url, postDataString, headers);
             try
             {
+                LykkeWalletBalance preExecutionBalance = GetBalance(apiKey, toCurrency.ToString());
+                var urlResponse = ThirdPartyRestCallsUtility.Post(url, postDataString, headers);
+                LykkeWalletBalance postExecutionBalance = GetBalance(apiKey, toCurrency.ToString());
                 if (urlResponse != null)
                 {
                     var marketResult = JsonConvert.DeserializeObject<MarketResult>(urlResponse, this.JsonSerializerSettings);
-                    return reversed ? new LykkeMoney(value, toCurrency) : new LykkeMoney(marketResult.Result, toCurrency);
+                    var price = marketResult.Result;
+                    var tradeResult = (postExecutionBalance.Balance - preExecutionBalance.Balance);
+                    return new LykkeMoney(tradeResult, toCurrency);
                 }
                 else
                 {
