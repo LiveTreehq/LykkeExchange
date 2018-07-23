@@ -17,6 +17,10 @@ Clone or download the repository and build the project. LykkeExchange.dll is ger
 # Usage
 The module can be imported with the below statement
 
+```csharp
+using ExchangeMarket.LykkeExchange
+```
+
 # License
 
 Standar [MIT License](https://opensource.org/licenses/MIT)
@@ -29,9 +33,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-```csharp
-using ExchangeMarket.LykkeExchange
-```
+
 
 #### API Documentation
 ##### Classes:
@@ -41,37 +43,57 @@ using ExchangeMarket.LykkeExchange
     > Main entry point to Lykke Exchange
 
     ##### Methods:
-    * `LykkeExchange()`
+    * ```csharp
+    	LykkeExchange()
+        ```
         > Default constructor.
     
-    * [LykkeExchangeRate]() GetExchangeRate(string FromCurrency, string ToCurrency)
+    * 	```csharp
+    	LykkeExchangeRate GetExchangeRate(string FromCurrency, string ToCurrency)
+    	```
         > Get exchnage rate between FromCurrency to ToCurrency.
     
         Returns [LykkeExchangeRate]()
     
-    * `List<[LykkeHistory]()> GetTradingHistory(string FromCurrency, string ToCurrency, int Skip, int Count)`
+    * ```csharp
+    	List<LykkeHistory> GetTradingHistory(string FromCurrency, string ToCurrency, int Skip, int Count)
+        ```
         > Get trading histories between FromCurrency and ToCurrency from LykkeExchange skipping specified Skip number of recent Trading histories and fetching the next Count number of trading histories.
         
         Returns a List of [LykkeHistory]()
     
-    * `public [LykkeTradeHistory]()[] GetWalletTradeInformation(string apiKey, string FromCurrency, string ToCurrency, int skip, int take)`
+    * ```csharp
+    	LykkeTradeHistory[] GetWalletTradeInformation(string apiKey, string FromCurrency, string ToCurrency, int skip, int take)
+        ```
     
         >Get wallet trading histories between FromCurrency and ToCurrency from LykkeExchange skipping specified Skip number of recent Trading histories and fetching the next Count number of trading histories.with the wallet apikey.
         
          Returns List of [LykkeTradeHistory]()
     
-    * `[LykkeMoney]() MarketOrder(string apiKey, string FromCurrency, string ToCurrency, [LykkeTradeType]() tradeType, decimal value)`
+    * ```csharp
+    	LykkeMoney MarketOrder(string apiKey, string FromCurrency, string ToCurrency, [LykkeTradeType]() tradeType, decimal value)
+    	```
     
         > Execute a market order in lykke exchange. Buy or Sell a volume of an asset for another asset with the wallet apikey. 
         
-        > **Arguments**:
-            1. apikey : wallet api key
-            2. FromCurrency : currency to trade from
-            3. ToCurrency : currency to trade for
-            4. tradeType : type of trade (Buy or Sell)
-            5. value : Transaction volume.
+        > **Arguments**:<br>
+            1. apikey : wallet api key<br>
+            2. FromCurrency : currency to trade from<br>
+            3. ToCurrency : currency to trade for<br>
+            4. tradeType : type of trade (Buy or Sell)<br>
+            5. value : Transaction volume.<br>
     
         Returns [LykkeMoney]()
+   
+  * ```csharp
+   		LykkeWalletBalance[] GetBalances(string apiKey)
+     ```
+    > Get wallet balance with the wallet api key.
+    
+    Returns [LykkeWalletBalance]()
+    
+    
+    
     
 * ```csharp
     public class LykkeTradeHistory
@@ -80,13 +102,13 @@ using ExchangeMarket.LykkeExchange
     > Class to Store Wallet trade information.
     
     **Members:**<br/>
-        * `DateTime DateTime`: Date time of trade<br/>
-        * `string Id` : Trade ID<br/>
-        * `string State` : current state of trade<br/>
-        * `decimal Amount` : Trade Volume<br/>
-        * `string Asset` : Trade Asset<br/>
-        * `string AssetPair` : Trade Asset Pair<br/>
-        * `decimal Price`: Trade Price<br/>
+     * `DateTime DateTime`: Date time of trade<br/>
+     * `string Id` : Trade ID<br/>
+     * `string State` : current state of trade<br/>
+     * `decimal Amount` : Trade Volume<br/>
+     * `string Asset` : Trade Asset<br/>
+     * `string AssetPair` : Trade Asset Pair<br/>
+     * `decimal Price`: Trade Price<br/>
 * ```csharp
     public enum LykkeTradeType
     {
@@ -99,12 +121,12 @@ using ExchangeMarket.LykkeExchange
     ```
     
     **Members:**<br/>
-        * `string FromCurrency` : From asset<br/>
-        * `string ToCurrency` : To asset<br/>
-        * `decimal Amount` : Trade Amount<br/>
-        * `decimal Price` : Trade Price<br/>
-        * `LykkeTradeType TradeType` : SELL or BUY<br/>
-        * `DateTime DateTime` : Date and time of trade<br/>
+     * `string FromCurrency` : From asset<br/>
+     * `string ToCurrency` : To asset<br/>
+     * `decimal Amount` : Trade Amount<br/>
+     * `decimal Price` : Trade Price<br/>
+     * `LykkeTradeType TradeType` : SELL or BUY<br/>
+     * `DateTime DateTime` : Date and time of trade<br/>
     
     **Methods:**
     ```csharp
@@ -119,10 +141,10 @@ using ExchangeMarket.LykkeExchange
     ```
     
     **Members:**<br/>
-        ***`string FromCurrency` : exchange from asset<br/>
-        ***`string ToCurrency` : exchange to asset<br/>
-        *** `decimal Sell` : seller price<br/>
-        *** `decimal Buy` : buyer price<br/>
+     * `string FromCurrency` : exchange from asset<br/>
+     *   `string ToCurrency` : exchange to asset<br/>
+     *   `decimal Sell` : seller price<br/>
+     *   `decimal Buy` : buyer price<br/>
     **Methods:**
     ```csharp
     public LykkeExchangeRate(string FromCurrency, string ToCurrency, decimal Sell, decimal Buy)
@@ -144,4 +166,12 @@ using ExchangeMarket.LykkeExchange
     public LykkeMoney(decimal amount, string currency)
     ```
     > Default Constructor
+   
+* ```csharp
+	public class LykkeWalletBalance
+   ```
+   **Members**<br>
+   * `string AssetId` : AssetID
+   * `decimal Balance` : Wallet balance
+   * `decimal Reserved` : Wallet Reserve
        
