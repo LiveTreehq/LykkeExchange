@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LykkeExchange
+namespace ExchangeMarket
 {
     internal class InsufficientWalletBalanceException : Exception
     {

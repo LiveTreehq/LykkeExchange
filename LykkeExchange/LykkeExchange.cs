@@ -4,7 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 
-namespace LykkeExchange
+namespace ExchangeMarket
 {
     public class LykkeExchange
     {
@@ -283,14 +283,14 @@ namespace LykkeExchange
 
     public class LykkeTradeHistory
     {
-        DateTime _dateTime;
-        string _id;
-        string _state;
-        decimal _amount;
-        string _asset;
-        string _assetPair;
-        decimal _price;
-        Fee _fee;
+        public DateTime DateTime;
+        public string Id;
+        public string State;
+        public decimal Amount;
+        public string Asset;
+        public string AssetPair;
+        public decimal Price;
+        public Fee Fee;
     }
 
     /// <summary>
@@ -302,13 +302,13 @@ namespace LykkeExchange
         public decimal Result;
     }
 
-    internal class Fee
+    public class Fee
     {
-        decimal _amount;
-        Type _type;
+        public decimal Amount;
+        public Type Type;
     }
 
-    internal enum Type
+    public enum Type
     {
         Unknown,
         Absolute,

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LykkeExchange
+namespace ExchangeMarket
 {
     /// <summary>
     /// Exchange rate between two currencies

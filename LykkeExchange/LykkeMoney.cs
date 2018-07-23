@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LykkeExchange
+namespace ExchangeMarket
 {
     /// <summary>
     /// Money pattern implementation (according to Patterns of Enterprise Application Architecture (Fowler, 2002))
